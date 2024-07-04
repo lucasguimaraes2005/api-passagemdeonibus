@@ -35,16 +35,6 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarios);
     }
 
-    @PostMapping
-    public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
-        try {
-            Usuario newUsuario = usuarioService.createUsuario(usuario);
-            return ResponseEntity.ok(newUsuario);
-        } catch (UserAlreadyExistsException e) {
-            return ResponseEntity.status(400).body("Usuário já existe no nosso sistema");
-        }
-    }
-
     @PutMapping("/{email}")
     public ResponseEntity<?> updateUsuario(@PathVariable String email, @RequestBody Usuario updatedUsuario) {
         try {
