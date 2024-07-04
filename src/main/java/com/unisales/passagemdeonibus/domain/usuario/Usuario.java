@@ -25,7 +25,7 @@ public class Usuario {
     private char sexo;
 
     @Column(name = "CPF")
-    private String cpf;
+    private String CPF;
 
     @Column(name = "email")
     private String email;

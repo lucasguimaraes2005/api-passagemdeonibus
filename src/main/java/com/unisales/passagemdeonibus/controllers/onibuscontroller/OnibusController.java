@@ -19,28 +19,48 @@ public class OnibusController {
     private OnibusService onibusService;
 
     @PostMapping
-    public ResponseEntity<Onibus> createOnibus(@RequestBody Onibus onibus) throws OnibusAlreadyExistsException {
-        return new ResponseEntity<>(onibusService.createOnibus(onibus), HttpStatus.CREATED);
+    public ResponseEntity<?> createOnibus(@RequestBody Onibus onibus) {
+        try {
+            Onibus newOnibus = onibusService.createOnibus(onibus);
+            return ResponseEntity.ok(newOnibus);
+        } catch (OnibusAlreadyExistsException e) {
+            return ResponseEntity.status(400).body("O ônibus já existe no nosso sistema");
+        }
     }
 
     @GetMapping("/{placa}")
-    public ResponseEntity<Onibus> getOnibus(@PathVariable String placa) throws OnibusNotFoundException {
-        return new ResponseEntity<>(onibusService.getOnibus(placa), HttpStatus.OK);
+    public ResponseEntity<?> getOnibus(@PathVariable String placa) {
+        try {
+            Onibus onibus = onibusService.getOnibus(placa);
+            return ResponseEntity.ok(onibus);
+        } catch (OnibusNotFoundException e) {
+            return ResponseEntity.status(404).body("Ônibus não encontrado");
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<Onibus>> getAllOnibus() {
-        return new ResponseEntity<>(onibusService.getAllOnibus(), HttpStatus.OK);
+    public ResponseEntity<?> getAllOnibus() {
+        List<Onibus> onibusList = onibusService.getAllOnibus();
+        return ResponseEntity.ok(onibusList);
     }
 
     @PutMapping("/{placa}")
-    public ResponseEntity<Onibus> updateOnibus(@PathVariable String placa, @RequestBody Onibus updatedOnibus) throws OnibusNotFoundException {
-        return new ResponseEntity<>(onibusService.updateOnibus(updatedOnibus), HttpStatus.OK);
+    public ResponseEntity<?> updateOnibus(@PathVariable String placa, @RequestBody Onibus updatedOnibus) {
+        try {
+            Onibus updated = onibusService.updateOnibus(updatedOnibus);
+            return ResponseEntity.ok(updated);
+        } catch (OnibusNotFoundException e) {
+            return ResponseEntity.status(404).body("Ônibus não encontrado");
+        }
     }
 
     @DeleteMapping("/{placa}")
-    public ResponseEntity<Void> deleteOnibus(@PathVariable String placa) throws OnibusNotFoundException {
-        onibusService.deleteOnibus(placa);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<?> deleteOnibus(@PathVariable String placa) {
+        try {
+            onibusService.deleteOnibus(placa);
+            return ResponseEntity.ok("Ônibus deletado com sucesso");
+        } catch (OnibusNotFoundException e) {
+            return ResponseEntity.status(404).body("Ônibus não encontrado");
+        }
     }
 }

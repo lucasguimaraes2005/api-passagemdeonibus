@@ -19,29 +19,49 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @PostMapping
-    public ResponseEntity<Usuario> createUsuario(@RequestBody Usuario usuario) throws UserAlreadyExistsException {
-        return new ResponseEntity<>(usuarioService.createUsuario(usuario), HttpStatus.CREATED);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Usuario> getUsuario(@PathVariable String id) {
-        return new ResponseEntity<>(usuarioService.getUsuario(id), HttpStatus.OK);
+    @GetMapping("/{email}")
+    public ResponseEntity<?> getUsuario(@PathVariable String email) {
+        try {
+            Usuario usuario = usuarioService.getUsuario(email);
+            return ResponseEntity.ok(usuario);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body("Usuário não encontrado");
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<Usuario>> getAllUsuarios() {
-        return new ResponseEntity<>(usuarioService.getAllUsuarios(), HttpStatus.OK);
+    public ResponseEntity<?> getAllUsuarios() {
+        List<Usuario> usuarios = usuarioService.getAllUsuarios();
+        return ResponseEntity.ok(usuarios);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Usuario> updateUsuario(@PathVariable String id, @RequestBody Usuario updatedUsuario) throws UserNotFoundException {
-        return new ResponseEntity<>(usuarioService.updateUsuario(updatedUsuario), HttpStatus.OK);
+    @PostMapping
+    public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
+        try {
+            Usuario newUsuario = usuarioService.createUsuario(usuario);
+            return ResponseEntity.ok(newUsuario);
+        } catch (UserAlreadyExistsException e) {
+            return ResponseEntity.status(400).body("Usuário já existe no nosso sistema");
+        }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUsuario(@PathVariable String id) throws UserNotFoundException {
-        usuarioService.deleteUsuario(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @PutMapping("/{email}")
+    public ResponseEntity<?> updateUsuario(@PathVariable String email, @RequestBody Usuario updatedUsuario) {
+        try {
+            Usuario updated = usuarioService.updateUsuario(updatedUsuario);
+            return ResponseEntity.ok(updated);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body("Usuário não encontrado");
+        }
+    }
+
+    @DeleteMapping("/{email}")
+    public ResponseEntity<?> deleteUsuario(@PathVariable String email) {
+        try {
+            usuarioService.deleteUsuario(email);
+            return ResponseEntity.ok("Usuário deletado com sucesso");
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body("Usuário não encontrado");
+        }
     }
 }

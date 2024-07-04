@@ -2,6 +2,7 @@ package com.unisales.passagemdeonibus.controllers.passagemcontroller;
 
 
 import com.unisales.passagemdeonibus.domain.passagem.Passagem;
+import com.unisales.passagemdeonibus.domain.passagemrequest.PassagemRequest;
 import com.unisales.passagemdeonibus.exceptions.OnibusNotFoundException;
 import com.unisales.passagemdeonibus.exceptions.PassagemAlreadyExistsException;
 import com.unisales.passagemdeonibus.exceptions.PassagemNotFoundException;
@@ -22,28 +23,54 @@ public class PassagemController {
     private PassagemService passagemService;
 
     @PostMapping
-    public ResponseEntity<Passagem> createPassagem(@RequestBody Passagem passagem) throws UserNotFoundException, PassagemAlreadyExistsException, OnibusNotFoundException {
-        return new ResponseEntity<>(passagemService.createPassagem(passagem), HttpStatus.CREATED);
+    public ResponseEntity<?> createPassagem(@RequestBody PassagemRequest request) {
+        try {
+            Passagem newPassagem = passagemService.createPassagem(request);
+            return ResponseEntity.ok(newPassagem);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body("Usuário não encontrado");
+        } catch (OnibusNotFoundException e) {
+            return ResponseEntity.status(404).body("Ônibus não encontrado");
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Passagem> getPassagem(@PathVariable String id) throws PassagemNotFoundException {
-        return new ResponseEntity<>(passagemService.getPassagem(id), HttpStatus.OK);
+    public ResponseEntity<?> getPassagem(@PathVariable String id) {
+        try {
+            Passagem passagem = passagemService.getPassagem(id);
+            return ResponseEntity.ok(passagem);
+        } catch (PassagemNotFoundException e) {
+            return ResponseEntity.status(404).body("Passagem não encontrada");
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<Passagem>> getAllPassagens() {
-        return new ResponseEntity<>(passagemService.getAllPassagens(), HttpStatus.OK);
+    public ResponseEntity<?> getAllPassagens() {
+        List<Passagem> passagens = passagemService.getAllPassagens();
+        return ResponseEntity.ok(passagens);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Passagem> updatePassagem(@PathVariable Long id, @RequestBody Passagem updatedPassagem) throws UserNotFoundException, PassagemNotFoundException, OnibusNotFoundException {
-        return new ResponseEntity<>(passagemService.updatePassagem(updatedPassagem), HttpStatus.OK);
+    public ResponseEntity<?> updatePassagem(@PathVariable String id, @RequestBody PassagemRequest updatedPassagem) {
+        try {
+            Passagem updated = passagemService.updatePassagem(id, updatedPassagem);
+            return ResponseEntity.ok(updated);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body("Usuário não encontrado");
+        } catch (PassagemNotFoundException e) {
+            return ResponseEntity.status(404).body("Passagem não encontrada");
+        } catch (OnibusNotFoundException e) {
+            return ResponseEntity.status(404).body("Ônibus não encontrado");
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePassagem(@PathVariable String id) throws PassagemNotFoundException {
-        passagemService.deletePassagem(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<?> deletePassagem(@PathVariable String id) {
+        try {
+            passagemService.deletePassagem(id);
+            return ResponseEntity.ok("Passagem deletada com sucesso");
+        } catch (PassagemNotFoundException e) {
+            return ResponseEntity.status(404).body("Passagem não encontrada");
+        }
     }
 }

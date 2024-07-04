@@ -1,5 +1,8 @@
 package com.unisales.passagemdeonibus.domain.onibus;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.unisales.passagemdeonibus.domain.passagem.Passagem;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,6 +22,7 @@ public class Onibus {
     private String id;
 
     @Column(name = "placa")
+    @JsonSetter
     private String placa;
 
     @Column(name = "modelo")
@@ -30,4 +34,9 @@ public class Onibus {
     @JsonIgnore
     @OneToMany(mappedBy = "onibus", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Passagem> passagens;
+
+    @JsonCreator
+    public Onibus(@JsonProperty("placa") String placa) {
+        this.placa = placa;
+    }
 }

@@ -4,6 +4,7 @@ import com.unisales.passagemdeonibus.domain.onibus.Onibus;
 import com.unisales.passagemdeonibus.domain.onibus.OnibusRepository;
 import com.unisales.passagemdeonibus.domain.passagem.Passagem;
 import com.unisales.passagemdeonibus.domain.passagem.PassagemRepository;
+import com.unisales.passagemdeonibus.domain.passagemrequest.PassagemRequest;
 import com.unisales.passagemdeonibus.domain.usuario.Usuario;
 import com.unisales.passagemdeonibus.domain.usuario.UsuarioRepository;
 import com.unisales.passagemdeonibus.exceptions.OnibusNotFoundException;
@@ -11,9 +12,13 @@ import com.unisales.passagemdeonibus.exceptions.PassagemAlreadyExistsException;
 import com.unisales.passagemdeonibus.exceptions.PassagemNotFoundException;
 import com.unisales.passagemdeonibus.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import java.sql.Date;
+import java.sql.Time;
 import java.util.List;
 
+@Service
 public class PassagemService {
 
     @Autowired
@@ -25,22 +30,21 @@ public class PassagemService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public Passagem createPassagem(Passagem passagem) throws PassagemAlreadyExistsException, OnibusNotFoundException, UserNotFoundException {
-        if (passagemRepository.findById(passagem.getId()).isPresent()) {
-            throw new PassagemAlreadyExistsException("Essa passagem já existe no sistema");
-        }
-
-        Onibus onibus = onibusRepository.findByPlaca(passagem.getOnibus().getPlaca())
+    public Passagem createPassagem(PassagemRequest request) throws OnibusNotFoundException, UserNotFoundException {
+        Onibus onibus = onibusRepository.findByPlaca(request.getOnibus())
                 .orElseThrow(() -> new OnibusNotFoundException("Ônibus não encontrado no nosso sistema"));
 
-        Usuario usuario = usuarioRepository.findByEmail(passagem.getUsuario().getEmail())
+        Usuario usuario = usuarioRepository.findByEmail(request.getUsuario())
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado no nosso sistema"));
 
+        Passagem passagem = new Passagem();
         passagem.setOnibus(onibus);
         passagem.setUsuario(usuario);
+        passagem.setDataViagem(Date.valueOf(request.getDataViagem()));
+        passagem.setHoraViagem(Time.valueOf(request.getHoraViagem()));
+        passagem.setPreco(request.getPreco());
 
         return passagemRepository.save(passagem);
-
     }
 
     public Passagem getPassagem(String id) throws PassagemNotFoundException {
@@ -48,21 +52,26 @@ public class PassagemService {
                 .orElseThrow(() -> new PassagemNotFoundException("Passagem não encontrada"));
     }
 
-    public Passagem updatePassagem(Passagem updatePassagem) throws PassagemNotFoundException, OnibusNotFoundException, UserNotFoundException {
-        Passagem passagem = passagemRepository.findById(updatePassagem.getId())
+    public Passagem updatePassagem(String id, PassagemRequest updatePassagemRequest) throws PassagemNotFoundException, OnibusNotFoundException, UserNotFoundException {
+        Passagem passagem = passagemRepository.findById(id)
                 .orElseThrow(() -> new PassagemNotFoundException("Passagem não encontrada"));
 
-        Onibus onibus = onibusRepository.findByPlaca(updatePassagem.getOnibus().getPlaca())
+        Onibus onibus = onibusRepository.findByPlaca(updatePassagemRequest.getOnibus())
                 .orElseThrow(() -> new OnibusNotFoundException("Ônibus não encontrado no nosso sistema"));
 
-        Usuario usuario = usuarioRepository.findByEmail(updatePassagem.getUsuario().getEmail())
+        Usuario usuario = usuarioRepository.findByEmail(updatePassagemRequest.getUsuario())
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado no nosso sistema"));
 
         passagem.setOnibus(onibus);
         passagem.setUsuario(usuario);
-        passagem.setPreco(updatePassagem.getPreco());
-        passagem.setDataViagem(updatePassagem.getDataViagem());
-        passagem.setHoraViagem(updatePassagem.getHoraViagem());
+        passagem.setPreco(updatePassagemRequest.getPreco());
+
+        // Convertendo data e hora do JSON para java.sql.Date e java.sql.Time
+        java.sql.Date dataViagem = java.sql.Date.valueOf(updatePassagemRequest.getDataViagem());
+        java.sql.Time horaViagem = java.sql.Time.valueOf(updatePassagemRequest.getHoraViagem());
+
+        passagem.setDataViagem(dataViagem);
+        passagem.setHoraViagem(horaViagem);
 
         return passagemRepository.save(passagem);
     }
